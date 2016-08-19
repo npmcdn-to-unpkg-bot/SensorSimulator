@@ -1,5 +1,6 @@
 import math
 import csv
+from datetime import datetime
 
 class coords:
 	def __init__(self, lon, lat):
@@ -38,7 +39,7 @@ class coords:
 
 
 	def __eq__(self, other):
-		return self_coords == other_coords
+		return self._coords == other._coords
 
 	def __ne__(self, other):
 		return not self == other
@@ -50,9 +51,9 @@ class coords:
 class sensor_simulator:
 	def __init__(self):
 		self._locations = {
-    		"heathrow": coords(51.4775, -0.461389),
-    		"luton": coords(51.874722, -0.368333),
-    		"oxford": coords(51.835882, -1.317293)
+			"heathrow": coords(51.4775, -0.461389),
+			"luton": coords(51.874722, -0.368333),
+			"oxford": coords(51.835882, -1.317293)
 		}
 
 	def closest_airport(self, coordinate):
@@ -62,18 +63,14 @@ class sensor_simulator:
 		difference = p1 - p2
 		return math.sqrt(difference[0]**2 + difference[1]**2)
 
-	def temp_at_aiport(self, time, airport):
-		with open(airport+'.csv', 'rb') as csvfile:
-			rowreader = csv.reader(csvfile, delimiter=',')
+	def temp_at_airport(self, time, airport):
+		with open('weather_data/' + airport+'.csv') as csvfile:
+			rowreader = csv.DictReader(csvfile)
 			for row in rowreader:
-				print(row['temperature'])
-
+				timestamp = datetime.strptime(row['Timestamp'], "%Y-%m-%d %H:%M:%S")
+				if timestamp > time:
+					return row['Temperature']
 
 	def temp_at_coords(self, time, coords):
 		airport = self.closest_airport(coords)
-		return self.temp_at_aiport(time, airport)
-
-hatfield = coords(51.762124, -0.243090)
-
-ss = sensor_simulator()
-print(ss.temp_at_coords('now', hatfield))
+		return self.temp_at_airport(time, airport)
