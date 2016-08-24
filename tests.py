@@ -1,6 +1,7 @@
 import unittest
+from math import sqrt
 from datetime import datetime
-from SensorSimulator.simulator import SensorSimulator, WeatherStation, VanSimulator
+from SensorSimulator.simulator import SensorSimulator, WeatherStation, VanSimulator, PollutionStation
 
 
 class SensorSimulatorMethods(unittest.TestCase):
@@ -32,19 +33,40 @@ class VanSimulatorMethods(unittest.TestCase):
         self.van.start()
 
     def test_get_weather(self):
-        weather = self.van.get_weather()
-        self.assertIsInstance(weather, (float, int))
+        readings = self.van.take_readings()
+        self.assertIsInstance(readings, tuple)
 
 
 class WeatherStationMethods(unittest.TestCase):
     def setUp(self):
-        self.weather_station = WeatherStation("Test", (51.501225, -0.141821))
+        self.weather_station = WeatherStation("luton", (51.501225, -0.141821))
 
     def test_get_distance(self):
         hatfield = (51.762244, -0.243851)
         distance = self.weather_station.get_distance_from(hatfield)
+        true_distance = sqrt((hatfield[0] - 51.501225)**2 + (hatfield[1]--0.141821)**2)
+        self.assertIsInstance(distance, (float, int))
+        self.assertEqual(distance, true_distance)
+
+    def test_get_weather(self):
+        time = datetime(2016, 8, 18, 8)
+        weather = self.weather_station.get_weather(time)
+        self.assertIsInstance(weather, (float, int))
+
+
+class PollutionStationMethods(unittest.TestCase):
+    def setUp(self):
+        self.pollution_station = PollutionStation("westminster", (51.501225, -0.141821))
+
+    def test_get_distance(self):
+        hatfield = (51.762244, -0.243851)
+        distance = self.pollution_station.get_distance_from(hatfield)
         self.assertIsInstance(distance, (float, int))
 
+    def test_get_pollution(self):
+        time = datetime(2016, 8, 18, 8)
+        pollution = self.pollution_station.get_pollution(time)
+        self.assertIsInstance(pollution, (float, int))
 
 if __name__ == '__main__':
     unittest.main()

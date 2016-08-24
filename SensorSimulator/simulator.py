@@ -1,4 +1,4 @@
-import math
+from math import sqrt
 import csv
 from datetime import datetime, timedelta
 
@@ -9,11 +9,7 @@ class Station:
 
     def get_distance_from(self, coords):
         difference = (coords[0] - self._coords[0], coords[1] - self._coords[1])
-        return math.sqrt(difference[0]**2 + difference[1]**2)
-
-    def get_distance_from(self, coords):
-        difference = (coords[0] - self._coords[0], coords[1] - self._coords[1])
-        return math.sqrt(difference[0]**2 + difference[1]**2)
+        return sqrt(difference[0]**2 + difference[1]**2)
 
     def __str__(self):
         return self._name
@@ -35,6 +31,22 @@ class WeatherStation(Station):
             raise ValueError("Time given is out of range")
 
 
+class PollutionStation(Station):
+    def get_pollution(self, time):
+        with open('pollution_data/' + self._name + '.csv') as pollutionFile:
+            rowreader = csv.DictReader(pollutionFile, quoting=csv.QUOTE_NONNUMERIC)
+            mask = "%Y-%m-%d %H:%M:%S"
+            row = next(rowreader)
+            timestamp = datetime.strptime(row['Timestamp'], mask)
+            if timestamp > time:
+                raise ValueError("Time given is out of range")
+            for row in rowreader:
+                timestamp = datetime.strptime(row['Timestamp'], mask)
+                if timestamp > time:
+                    return row['NO']
+            raise ValueError("Time given is out of range")
+
+
 class SensorSimulator:
     """Sensor Simulator Class"""
     def __init__(self):
@@ -44,12 +56,23 @@ class SensorSimulator:
             WeatherStation("oxford", (51.835882, -1.317293))
         ]
 
+        self._pollution_stations = [
+            PollutionStation("westminster", (51.494670, -0.131931))
+        ]
+
     def closest_weather_station(self, coords):
         return min(self._weather_stations, key=lambda x: x.get_distance_from(coords))
+
+    def closest_pollution_station(self, coords):
+        return min(self._pollution_stations, key=lambda x: x.get_distance_from(coords))
 
     def weather_at(self, time, coords):
         weather_station = self.closest_weather_station(coords)
         return weather_station.get_weather(time)
+
+    def pollution_at(self, time, coords):
+        pollution_station = self.closest_pollution_station(coords)
+        return pollution_station.get_pollution(time)
 
 
 class VanSimulator:
@@ -82,6 +105,7 @@ class VanSimulator:
         self.speed = self.calculate_speed(row["Time"], row["Longitude"], row["Latitude"])
 
         while row["Time"] > self.currentTime + (self.timeToNextReading):
+            print(self.take_readings())
             self.move_to_next_reading()
 
         self.timeToNextReading -= (row["Time"] - self.currentTime)
@@ -95,9 +119,11 @@ class VanSimulator:
             self.currentPosition[1] + (self.speed[1] * timedelta_to_minutes(self.timeBetweenReadings))
         )
 
-    def get_weather(self):
+    def take_readings(self):
         sensor = SensorSimulator()
-        return sensor.weather_at(self.currentTime, self.currentPosition)
+        weather = sensor.weather_at(self.currentTime, self.currentPosition)
+        pollution = sensor.pollution_at(self.currentTime, self.currentPosition)
+        return (weather, pollution)
 
     def calculate_speed(self, end_time, end_lon, end_lat):
         time_difference = end_time - self.currentTime
