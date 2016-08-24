@@ -11,7 +11,7 @@ class Airport:
 
     def get_weather(self, time):
         with open('weather_data/' + self._name + '.csv') as weatherFile:
-            rowreader = csv.DictReader(weatherFile)
+            rowreader = csv.DictReader(weatherFile, quoting=csv.QUOTE_NONNUMERIC)
             mask = "%Y-%m-%d %H:%M:%S"
             row = next(rowreader)
             timestamp = datetime.strptime(row['Timestamp'], mask)
@@ -20,7 +20,7 @@ class Airport:
             for row in rowreader:
                 timestamp = datetime.strptime(row['Timestamp'], mask)
                 if timestamp > time:
-                    return float(row['Temperature'])
+                    return row['Temperature']
             raise ValueError("Time given is out of range")
 
     def get_distance_from(self, coords):
@@ -53,35 +53,14 @@ class SensorSimulator:
 
 class VanSimulator:
     """Van Simulator Class"""
-    def __init__(self):
-        self.start_coordinates = (51.762244, -0.243851)
-        self.end_coordinates = (51.503358, -0.127659)
-        self.start_time = datetime(2016, 8, 18, 10, 0)
-        self.trip_duration = 300
-        self.step_time = 5
+    def __init__(self, routeFile):
+        self.rowreader = csv.DictReader(routeFile, quoting=csv.QUOTE_NONNUMERIC)
 
-        self.current_time = self.start_time
-        self.current_coordinates = list(self.start_coordinates)
+        row = next(self.rowreader)
 
-        self.end_time = self.start_time + timedelta(minutes=self.trip_duration)
-
-        self.number_of_steps = self.trip_duration/self.step_time
-
-        self.lon_distance = self.end_coordinates[0] - self.start_coordinates[0]
-        self.lat_distance = self.end_coordinates[1] - self.start_coordinates[1]
-
-    def go(self):
-        while (self.current_time < self.end_time):
-            self.step()
-
-    def step(self):
-        self.current_time += timedelta(minutes=self.step_time)
-        self.current_coordinates[0] += self.lon_distance / self.number_of_steps
-        self.current_coordinates[1] += self.lat_distance / self.number_of_steps
-
-    def get_position(self):
-        return self.current_coordinates
+        self.current_position = (row['Longitude'], row['Latitude'])
+        self.current_time = datetime.strptime(row['Time'], "%Y-%m-%d %H:%M:%S")
 
     def get_weather(self):
         sensor = SensorSimulator()
-        return sensor.weather_at(self.current_time, self.current_coordinates)
+        return sensor.weather_at(self.current_time, self.current_position)

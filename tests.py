@@ -26,22 +26,12 @@ class SensorSimulatorMethods(unittest.TestCase):
 
 class VanSimulatorMethods(unittest.TestCase):
     def setUp(self):
-        self.van = VanSimulator()
-
-    def test_get_position(self):
-        latitude, longitude = self.van.get_position()
-        self.assertIsInstance(latitude, float)
-        self.assertIsInstance(longitude, float)
+        with open('path.csv') as route:
+            self.van = VanSimulator(route)
 
     def test_get_weather(self):
         weather = self.van.get_weather()
         self.assertIsInstance(weather, (float, int))
-
-    def test_take_journey(self):
-        self.van.go()
-        end_target = self.van.end_coordinates
-        end_true = [round(coord, 7) for coord in self.van.current_coordinates]
-        self.assertEqual(tuple(end_true), end_target)
 
 
 class AirportMethods(unittest.TestCase):
