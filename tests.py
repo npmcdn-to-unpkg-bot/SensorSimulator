@@ -26,8 +26,10 @@ class SensorSimulatorMethods(unittest.TestCase):
 
 class VanSimulatorMethods(unittest.TestCase):
     def setUp(self):
-        with open('path.csv') as route:
-            self.van = VanSimulator(route)
+        self.van = VanSimulator(open('path.csv', 'r'))
+
+    def test_route(self):
+        self.van.start()
 
     def test_get_weather(self):
         weather = self.van.get_weather()
