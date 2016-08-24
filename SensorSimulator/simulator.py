@@ -50,33 +50,34 @@ class SensorSimulator:
         airport = self.closest_airport(coords)
         return airport.get_weather(time)
 
-    def simulate_route(self, routeCSVFile):
-        pass
-
 
 class VanSimulator:
     """Van Simulator Class"""
     def __init__(self):
-        self.start_coordinates = [51.762244, -0.243851]
-        self.end_coordinates = [51.503358, -0.127659]
+        self.start_coordinates = (51.762244, -0.243851)
+        self.end_coordinates = (51.503358, -0.127659)
         self.start_time = datetime(2016, 8, 18, 10, 0)
         self.trip_duration = 300
         self.step_time = 5
 
         self.current_time = self.start_time
-        self.current_coordinates = self.start_coordinates
+        self.current_coordinates = list(self.start_coordinates)
+
+        self.end_time = self.start_time + timedelta(minutes=self.trip_duration)
+
+        self.number_of_steps = self.trip_duration/self.step_time
 
         self.lon_distance = self.end_coordinates[0] - self.start_coordinates[0]
         self.lat_distance = self.end_coordinates[1] - self.start_coordinates[1]
 
     def go(self):
-        while (self.current_time < self.start_time + timedelta(minutes=self.trip_duration)):
+        while (self.current_time < self.end_time):
             self.step()
 
     def step(self):
         self.current_time += timedelta(minutes=self.step_time)
-        self.current_coordinates[0] += (self.lon_distance / (self.trip_duration/self.step_time))
-        self.current_coordinates[1] += (self.lat_distance / (self.trip_duration/self.step_time))
+        self.current_coordinates[0] += self.lon_distance / self.number_of_steps
+        self.current_coordinates[1] += self.lat_distance / self.number_of_steps
 
     def get_position(self):
         return self.current_coordinates

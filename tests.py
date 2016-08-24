@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime
-from simulator import SensorSimulator, Airport, VanSimulator
+from SensorSimulator.simulator import SensorSimulator, Airport, VanSimulator
 
 
 class SensorSimulatorMethods(unittest.TestCase):
@@ -41,7 +41,7 @@ class VanSimulatorMethods(unittest.TestCase):
         self.van.go()
         end_target = self.van.end_coordinates
         end_true = [round(coord, 7) for coord in self.van.current_coordinates]
-        self.assertEqual(end_true, end_target)
+        self.assertEqual(tuple(end_true), end_target)
 
 
 class AirportMethods(unittest.TestCase):
