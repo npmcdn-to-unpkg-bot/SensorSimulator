@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime
-from simulator import SensorSimulator, Airport
+from simulator import SensorSimulator, Airport, VanSimulator
 
 
 class SensorSimulatorMethods(unittest.TestCase):
@@ -11,14 +11,37 @@ class SensorSimulatorMethods(unittest.TestCase):
         hatfield = (51.762244, -0.243851)
         self.assertEqual(str(self.sim.closest_airport(hatfield)), "luton")
 
-    def test_temp_at_coords(self):
+    def test_weather_at_coords(self):
         testTimeA = datetime(2016, 8, 18, 14, 10, 00)
-        testTimeB = datetime(2015, 8, 18, 14, 10, 00)
         hatfield = (51.762244, -0.243851)
         temperatureA = self.sim.weather_at(testTimeA, hatfield)
-        temperatureB = self.sim.weather_at(testTimeB, hatfield)
         self.assertIsInstance(temperatureA, (float, int))
-        self.assertRaises(temperatureB, ValueError)
+
+    def test_weather_at_coords2(self):
+        testTimeB = datetime(2015, 8, 18, 14, 10, 00)
+        hatfield = (51.762244, -0.243851)
+        with self.assertRaises(ValueError):
+            temperatureB = self.sim.weather_at(testTimeB, hatfield)
+
+
+class VanSimulatorMethods(unittest.TestCase):
+    def setUp(self):
+        self.van = VanSimulator()
+
+    def test_get_position(self):
+        latitude, longitude = self.van.get_position()
+        self.assertIsInstance(latitude, float)
+        self.assertIsInstance(longitude, float)
+
+    def test_get_weather(self):
+        weather = self.van.get_weather()
+        self.assertIsInstance(weather, (float, int))
+
+    def test_take_journey(self):
+        self.van.go()
+        end_target = self.van.end_coordinates
+        end_true = [round(coord, 7) for coord in self.van.current_coordinates]
+        self.assertEqual(end_true, end_target)
 
 
 class AirportMethods(unittest.TestCase):
