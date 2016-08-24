@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime
-from SensorSimulator.simulator import SensorSimulator, Airport, VanSimulator
+from SensorSimulator.simulator import SensorSimulator, WeatherStation, VanSimulator
 
 
 class SensorSimulatorMethods(unittest.TestCase):
@@ -9,7 +9,7 @@ class SensorSimulatorMethods(unittest.TestCase):
 
     def test_closest_airport(self):
         hatfield = (51.762244, -0.243851)
-        self.assertEqual(str(self.sim.closest_airport(hatfield)), "luton")
+        self.assertEqual(str(self.sim.closest_weather_station(hatfield)), "luton")
 
     def test_weather_at_coords(self):
         testTimeA = datetime(2016, 8, 18, 14, 10, 00)
@@ -36,13 +36,13 @@ class VanSimulatorMethods(unittest.TestCase):
         self.assertIsInstance(weather, (float, int))
 
 
-class AirportMethods(unittest.TestCase):
+class WeatherStationMethods(unittest.TestCase):
     def setUp(self):
-        self.airport = Airport("Test", (51.501225, -0.141821))
+        self.weather_station = WeatherStation("Test", (51.501225, -0.141821))
 
     def test_get_distance(self):
         hatfield = (51.762244, -0.243851)
-        distance = self.airport.get_distance_from(hatfield)
+        distance = self.weather_station.get_distance_from(hatfield)
         self.assertIsInstance(distance, (float, int))
 
 

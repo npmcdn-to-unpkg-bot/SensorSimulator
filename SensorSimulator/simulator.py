@@ -2,13 +2,24 @@ import math
 import csv
 from datetime import datetime, timedelta
 
-
-class Airport:
-    """Airport Class"""
+class Station:
     def __init__(self, name, coordinates):
         self._name = name
         self._coords = coordinates
 
+    def get_distance_from(self, coords):
+        difference = (coords[0] - self._coords[0], coords[1] - self._coords[1])
+        return math.sqrt(difference[0]**2 + difference[1]**2)
+
+    def get_distance_from(self, coords):
+        difference = (coords[0] - self._coords[0], coords[1] - self._coords[1])
+        return math.sqrt(difference[0]**2 + difference[1]**2)
+
+    def __str__(self):
+        return self._name
+
+
+class WeatherStation(Station):
     def get_weather(self, time):
         with open('weather_data/' + self._name + '.csv') as weatherFile:
             rowreader = csv.DictReader(weatherFile, quoting=csv.QUOTE_NONNUMERIC)
@@ -23,32 +34,22 @@ class Airport:
                     return row['Temperature']
             raise ValueError("Time given is out of range")
 
-    def get_distance_from(self, coords):
-        difference = (coords[0] - self._coords[0], coords[1] - self._coords[1])
-        return math.sqrt(difference[0]**2 + difference[1]**2)
-
-    def __str__(self):
-        return self._name
-
 
 class SensorSimulator:
     """Sensor Simulator Class"""
     def __init__(self):
-        self._airports = [
-            Airport("heathrow", (51.4775, -0.461389)),
-            Airport("luton", (51.874722, -0.368333)),
-            Airport("oxford", (51.835882, -1.317293))
+        self._weather_stations = [
+            WeatherStation("heathrow", (51.4775, -0.461389)),
+            WeatherStation("luton", (51.874722, -0.368333)),
+            WeatherStation("oxford", (51.835882, -1.317293))
         ]
 
-    def add_airport(self, name, coordinates):
-        self._airports.append(Airport(name, coordinates))
-
-    def closest_airport(self, coords):
-        return min(self._airports, key=lambda x: x.get_distance_from(coords))
+    def closest_weather_station(self, coords):
+        return min(self._weather_stations, key=lambda x: x.get_distance_from(coords))
 
     def weather_at(self, time, coords):
-        airport = self.closest_airport(coords)
-        return airport.get_weather(time)
+        weather_station = self.closest_weather_station(coords)
+        return weather_station.get_weather(time)
 
 
 class VanSimulator:
