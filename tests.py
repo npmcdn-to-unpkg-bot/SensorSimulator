@@ -1,7 +1,7 @@
 import unittest
 from math import sqrt
 from datetime import datetime
-from SensorSimulator.simulator import SensorSimulator, WeatherStation, VanSimulator, PollutionStation
+from SensorSimulator import SensorSimulator, WeatherStation, VanSimulator, PollutionStation
 
 
 class SensorSimulatorMethods(unittest.TestCase):
