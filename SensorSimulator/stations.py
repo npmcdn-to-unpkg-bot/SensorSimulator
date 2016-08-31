@@ -2,7 +2,7 @@ from math import sqrt
 import csv
 from datetime import datetime
 
-class Station:
+class Station(object):
     def __init__(self, name, coordinates):
         self._name = name
         self._coords = coordinates

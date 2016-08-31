@@ -8,9 +8,10 @@ class SensorSimulatorMethods(unittest.TestCase):
     def setUp(self):
         self.sim = SensorSimulator()
 
-    def test_closest_airport(self):
+    def test_closest_weather_station(self):
         hatfield = (51.762244, -0.243851)
-        self.assertEqual(str(self.sim.closest_weather_station(hatfield)), "luton")
+        closestWeatherStation = str(self.sim.closest_weather_station(hatfield))
+        self.assertEqual(closestWeatherStation, "luton")
 
     def test_weather_at_coords(self):
         testTimeA = datetime(2016, 8, 18, 14, 10, 00)

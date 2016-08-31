@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from stations import PollutionStation, WeatherStation
 
 
-class SensorSimulator:
+class SensorSimulator(object):
     """Sensor Simulator Class"""
     def __init__(self):
         self._weather_stations = [
@@ -32,7 +32,7 @@ class SensorSimulator:
         return pollution_station.get_pollution(time)
 
 
-class VanSimulator:
+class VanSimulator(object):
     """Van Simulator Class"""
     def __init__(self, routeFile):
         self.rowreader = csv.DictReader(routeFile, quoting=csv.QUOTE_NONNUMERIC)
@@ -45,26 +45,34 @@ class VanSimulator:
         self.currentTime = datetime.strptime(row['Time'], "%Y-%m-%d %H:%M:%S")
         self.timeToNextReading = self.timeBetweenReadings
 
+        self.readings = []
+
         self.speed = 0
 
     def start(self):
         moving = True
         while moving:
-            try:
-                self.move_to_next_route_marker()
-            except StopIteration:
-                moving = False
+            moving = self.move_to_next_weypoint()
 
-    def move_to_next_route_marker(self):
-        row = next(self.rowreader)
+    def move_to_next_weypoint(self):
+        try:
+            row = next(self.rowreader)
+        except StopIteration:
+            return False
+
         row["Time"] = datetime.strptime(row['Time'], "%Y-%m-%d %H:%M:%S")
 
         self.speed = self.calculate_speed(row["Time"], row["Longitude"], row["Latitude"])
 
-        while row["Time"] > self.currentTime + (self.timeToNextReading):
-            print(self.take_readings())
+        while row["Time"] > self.currentTime + self.timeToNextReading:
+            self.readings.append(self.take_readings())
             self.move_to_next_reading()
 
+        self.update_time_and_position(row)
+
+        return True
+
+    def update_time_and_position(self, row):
         self.timeToNextReading -= (row["Time"] - self.currentTime)
         self.currentTime = row["Time"]
         self.currentPosition = (row['Longitude'], row['Latitude'])
@@ -80,7 +88,7 @@ class VanSimulator:
         sensor = SensorSimulator()
         weather = sensor.weather_at(self.currentTime, self.currentPosition)
         pollution = sensor.pollution_at(self.currentTime, self.currentPosition)
-        return (weather, pollution)
+        return (self.currentPosition, str(self.currentTime), weather, pollution)
 
     def calculate_speed(self, end_time, end_lon, end_lat):
         time_difference = end_time - self.currentTime
