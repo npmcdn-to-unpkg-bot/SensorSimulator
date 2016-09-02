@@ -31,11 +31,11 @@ class WeatherStation(Station):
             for row in rowreader:
                 timestamp = datetime.strptime(row['Timestamp'], mask)
                 if timestamp > time:
-                    return (
-                        row['Temperature'],
-                        row['Humidity'],
-                        row['Pressure']
-                        )
+                    return ({
+                        "Temperature": row['Temperature'],
+                        "Humidity": row['Humidity'],
+                        "Pressure": row['Pressure']
+                    })
             raise ValueError("Time given is out of range")
 
 
@@ -54,7 +54,7 @@ class PollutionStation(Station):
             for row in rowreader:
                 timestamp = datetime.strptime(row['Timestamp'], mask)
                 if timestamp > time:
-                    return(
-                        row['NO']
-                        )
+                    return({
+                        "NO": row['NO']
+                    })
             raise ValueError("Time given is out of range")

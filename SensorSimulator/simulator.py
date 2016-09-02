@@ -88,7 +88,12 @@ class VanSimulator(object):
         sensor = SensorSimulator()
         weather = sensor.weather_at(self.currentTime, self.currentPosition)
         pollution = sensor.pollution_at(self.currentTime, self.currentPosition)
-        return (self.currentPosition, str(self.currentTime), weather, pollution)
+        return {
+            "Location": self.currentPosition,
+            "Time": str(self.currentTime),
+            "Weather": weather,
+            "Pollution": pollution
+        }
 
     def calculate_speed(self, end_time, end_lon, end_lat):
         time_difference = end_time - self.currentTime
