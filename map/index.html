@@ -1,0 +1,68 @@
+<html>
+    <head>
+         <meta charset="UTF-8">
+        <link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.css" />
+        <script src="leaflet.min.js"></script>
+        <script src="papaparse.js"></script>
+        <style>
+            body {
+                padding: 0;
+            }
+
+            #map {
+                width: 100%;
+                height: 100%;
+                position: inherit !important;
+                overflow: visible;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+    <script>
+            var mymap = L.map('map').setView([51.505, -0.09], 10);
+
+            L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v8/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
+                maxZoom: 18,
+                accessToken: 'pk.eyJ1IjoiYmVuLXdpbGxpcyIsImEiOiJjaXNsZ3Q2NnowMDZuMnNuNTRkOWx3aG9qIn0.kPrDlJl3RLatF8ip5BPsVg'
+            }).addTo(mymap);
+
+            Papa.parse("data.csv", {
+                delimeter: ",",
+                dynamicTyping: true,
+                header: true,
+            	download: true,
+            	complete: function(results) {
+                    for (var i = 0; i < results.data.length; i++) {
+                        reading = results.data[i]
+                        console.log(reading)
+                        if (reading["Latitude"]) plot(reading)
+                    }
+            	}
+            });
+
+            function plot(reading) {
+                var circle = L.circle([reading["Latitude"], reading["Longitude"]], 100, {
+                    color: 'red',
+                    fillColor: '#f03',
+                    fillOpacity: 0.5
+                }).addTo(mymap);
+
+                circle.bindPopup(
+                    "<b>Time: " +
+                    reading["Time"] +
+                    "</b><br/>" +
+                    "Temperature: " +
+                    reading["Temperature"] +
+                    "<br/>" +
+                    "Humidity: " +
+                    reading["Humidity"] +
+                    "<br/>" +
+                    "Pressure: " +
+                    reading["Pressure"] +
+                    "<br/>"
+                );
+            }
+        </script>
+    </body>
+</html>

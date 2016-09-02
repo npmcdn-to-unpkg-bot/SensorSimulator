@@ -2,6 +2,7 @@ from math import sqrt
 import csv
 from datetime import datetime
 
+
 class Station(object):
     def __init__(self, name, coordinates):
         self._name = name
@@ -18,7 +19,10 @@ class Station(object):
 class WeatherStation(Station):
     def get_weather(self, time):
         with open('weather_data/' + self._name + '.csv') as weatherFile:
-            rowreader = csv.DictReader(weatherFile, quoting=csv.QUOTE_NONNUMERIC)
+            rowreader = csv.DictReader(
+                weatherFile,
+                quoting=csv.QUOTE_NONNUMERIC
+                )
             mask = "%Y-%m-%d %H:%M:%S"
             row = next(rowreader)
             timestamp = datetime.strptime(row['Timestamp'], mask)
@@ -27,14 +31,21 @@ class WeatherStation(Station):
             for row in rowreader:
                 timestamp = datetime.strptime(row['Timestamp'], mask)
                 if timestamp > time:
-                    return row['Temperature']
+                    return (
+                        row['Temperature'],
+                        row['Humidity'],
+                        row['Pressure']
+                        )
             raise ValueError("Time given is out of range")
 
 
 class PollutionStation(Station):
     def get_pollution(self, time):
         with open('pollution_data/' + self._name + '.csv') as pollutionFile:
-            rowreader = csv.DictReader(pollutionFile, quoting=csv.QUOTE_NONNUMERIC)
+            rowreader = csv.DictReader(
+                pollutionFile,
+                quoting=csv.QUOTE_NONNUMERIC
+                )
             mask = "%Y-%m-%d %H:%M:%S"
             row = next(rowreader)
             timestamp = datetime.strptime(row['Timestamp'], mask)
@@ -43,5 +54,7 @@ class PollutionStation(Station):
             for row in rowreader:
                 timestamp = datetime.strptime(row['Timestamp'], mask)
                 if timestamp > time:
-                    return row['NO']
+                    return(
+                        row['NO']
+                        )
             raise ValueError("Time given is out of range")

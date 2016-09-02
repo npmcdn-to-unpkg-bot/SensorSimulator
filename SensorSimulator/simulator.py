@@ -34,8 +34,8 @@ class SensorSimulator(object):
 
 class VanSimulator(object):
     """Van Simulator Class"""
-    def __init__(self, routeFile):
-        self.rowreader = csv.DictReader(routeFile, quoting=csv.QUOTE_NONNUMERIC)
+    def __init__(self, route):
+        self.rowreader = csv.DictReader(route, quoting=csv.QUOTE_NONNUMERIC)
 
         self.timeBetweenReadings = timedelta(minutes=5)
 
