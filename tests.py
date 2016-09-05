@@ -17,7 +17,7 @@ class SensorSimulatorMethods(unittest.TestCase):
         testTimeA = datetime(2016, 8, 18, 14, 10, 00)
         hatfield = (51.762244, -0.243851)
         temperatureA = self.sim.weather_at(testTimeA, hatfield)
-        self.assertIsInstance(temperatureA, tuple)
+        self.assertIsInstance(temperatureA, dict)
 
     def test_weather_at_coords2(self):
         testTimeB = datetime(2015, 8, 18, 14, 10, 00)
@@ -35,7 +35,7 @@ class VanSimulatorMethods(unittest.TestCase):
 
     def test_get_weather(self):
         readings = self.van.take_readings()
-        self.assertIsInstance(readings, tuple)
+        self.assertIsInstance(readings, dict)
 
 
 class WeatherStationMethods(unittest.TestCase):
@@ -52,7 +52,7 @@ class WeatherStationMethods(unittest.TestCase):
     def test_get_weather(self):
         time = datetime(2016, 8, 18, 8)
         weather = self.weather_station.get_weather(time)
-        self.assertIsInstance(weather, tuple)
+        self.assertIsInstance(weather, dict)
 
 
 class PollutionStationMethods(unittest.TestCase):
@@ -67,7 +67,7 @@ class PollutionStationMethods(unittest.TestCase):
     def test_get_pollution(self):
         time = datetime(2016, 8, 18, 8)
         pollution = self.pollution_station.get_pollution(time)
-        self.assertIsInstance(pollution, (float, int))
+        self.assertIsInstance(pollution, dict)
 
 if __name__ == '__main__':
     unittest.main()
