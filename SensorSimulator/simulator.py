@@ -2,11 +2,17 @@ from math import sqrt
 import csv
 from datetime import datetime, timedelta
 from stations import PollutionStation, WeatherStation
+from Crypto.Cipher import AES
+import requests
+import json
 
 
 class SensorSimulator(object):
     """Sensor Simulator Class"""
-    def __init__(self):
+    def __init__(self, time, coords):
+        self.time = time
+        self.coords = coords
+
         self._weather_stations = [
             WeatherStation("heathrow", (51.4775, -0.461389)),
             WeatherStation("luton", (51.874722, -0.368333)),
@@ -17,19 +23,45 @@ class SensorSimulator(object):
             PollutionStation("westminster", (51.494670, -0.131931))
         ]
 
-    def closest_weather_station(self, coords):
-        return min(self._weather_stations, key=lambda x: x.get_distance_from(coords))
+        self.cipher = AES.new("VLbWHdtrdHzNKfqj8Xt5nTQ4", AES.MODE_ECB)
 
-    def closest_pollution_station(self, coords):
-        return min(self._pollution_stations, key=lambda x: x.get_distance_from(coords))
+    def closest_weather_station(self):
+        return min(self._weather_stations, key=lambda x: x.get_distance_from(self.coords))
 
-    def weather_at(self, time, coords):
-        weather_station = self.closest_weather_station(coords)
-        return weather_station.get_weather(time)
+    def closest_pollution_station(self):
+        return min(self._pollution_stations, key=lambda x: x.get_distance_from(self.coords))
 
-    def pollution_at(self, time, coords):
-        pollution_station = self.closest_pollution_station(coords)
-        return pollution_station.get_pollution(time)
+    def weather(self):
+        weather_station = self.closest_weather_station()
+        return weather_station.get_weather(self.time)
+
+    def pollution(self):
+        pollution_station = self.closest_pollution_station()
+        return pollution_station.get_pollution(self.time)
+
+    def send_reading(self):
+        weather = self.weather()
+        pollution = self.pollution()
+
+        body = json.dumps({
+            "deviceId": "fake1",
+            "eventTime": (self.time - datetime(1970, 1, 1)).total_seconds(),
+            "temp": weather["Temperature"],
+            "hum": weather["Humidity"],
+            "pres": weather["Pressure"]/10,
+            "bat": 1,
+            "long": self.coords[0],
+            "lat": self.coords[1]
+        })
+
+        padding = (16 - (len(body) % 16)) * "0"
+
+        encrypted_body = self.cipher.encrypt(body + padding).encode("hex")
+
+        r = requests.post(
+            "http://sensorendpoint.azurewebsites.net/api/HttpTriggerNodeJS2?code=2hih8t6l2t6zjxsfng1hccwqz7xtt6b7r",
+            data=encrypted_body
+        )
 
 
 class VanSimulator(object):
@@ -44,8 +76,6 @@ class VanSimulator(object):
         self.currentPosition = (row['Longitude'], row['Latitude'])
         self.currentTime = datetime.strptime(row['Time'], "%Y-%m-%d %H:%M:%S")
         self.timeToNextReading = self.timeBetweenReadings
-
-        self.readings = []
 
         self.speed = 0
 
@@ -65,7 +95,7 @@ class VanSimulator(object):
         self.speed = self.calculate_speed(row["Time"], row["Longitude"], row["Latitude"])
 
         while row["Time"] > self.currentTime + self.timeToNextReading:
-            self.readings.append(self.take_readings())
+            self.take_readings()
             self.move_to_next_reading()
 
         self.update_time_and_position(row)
@@ -85,15 +115,8 @@ class VanSimulator(object):
         )
 
     def take_readings(self):
-        sensor = SensorSimulator()
-        weather = sensor.weather_at(self.currentTime, self.currentPosition)
-        pollution = sensor.pollution_at(self.currentTime, self.currentPosition)
-        return {
-            "Location": self.currentPosition,
-            "Time": str(self.currentTime),
-            "Weather": weather,
-            "Pollution": pollution
-        }
+        sensor = SensorSimulator(self.currentTime, self.currentPosition)
+        sensor.send_reading()
 
     def calculate_speed(self, end_time, end_lon, end_lat):
         time_difference = end_time - self.currentTime

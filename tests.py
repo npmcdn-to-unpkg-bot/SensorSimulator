@@ -6,24 +6,23 @@ from SensorSimulator import SensorSimulator, WeatherStation, VanSimulator, Pollu
 
 class SensorSimulatorMethods(unittest.TestCase):
     def setUp(self):
-        self.sim = SensorSimulator()
+        self.sim = SensorSimulator(
+            datetime(2016, 8, 18, 14, 10, 00),
+            (51.762244, -0.243851)
+        )
 
     def test_closest_weather_station(self):
-        hatfield = (51.762244, -0.243851)
-        closestWeatherStation = str(self.sim.closest_weather_station(hatfield))
+        closestWeatherStation = str(self.sim.closest_weather_station())
         self.assertEqual(closestWeatherStation, "luton")
 
     def test_weather_at_coords(self):
-        testTimeA = datetime(2016, 8, 18, 14, 10, 00)
-        hatfield = (51.762244, -0.243851)
-        temperatureA = self.sim.weather_at(testTimeA, hatfield)
+        temperatureA = self.sim.weather()
         self.assertIsInstance(temperatureA, dict)
 
     def test_weather_at_coords2(self):
-        testTimeB = datetime(2015, 8, 18, 14, 10, 00)
-        hatfield = (51.762244, -0.243851)
+        self.sim.time = datetime(2015, 8, 18, 14, 10, 00)
         with self.assertRaises(ValueError):
-            temperatureB = self.sim.weather_at(testTimeB, hatfield)
+            temperatureB = self.sim.weather()
 
 
 class VanSimulatorMethods(unittest.TestCase):
@@ -32,10 +31,6 @@ class VanSimulatorMethods(unittest.TestCase):
 
     def test_route(self):
         self.van.start()
-
-    def test_get_weather(self):
-        readings = self.van.take_readings()
-        self.assertIsInstance(readings, dict)
 
 
 class WeatherStationMethods(unittest.TestCase):
