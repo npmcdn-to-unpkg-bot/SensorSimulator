@@ -3,6 +3,7 @@ import csv
 from datetime import datetime, timedelta
 from stations import PollutionStation, WeatherStation
 from Crypto.Cipher import AES
+import time
 import requests
 import json
 
@@ -54,6 +55,8 @@ class SensorSimulator(object):
             "lat": self.coords[1]
         })
 
+        print(body)
+
         padding = (16 - (len(body) % 16)) * "0"
 
         encrypted_body = self.cipher.encrypt(body + padding).encode("hex")
@@ -66,10 +69,10 @@ class SensorSimulator(object):
 
 class VanSimulator(object):
     """Van Simulator Class"""
-    def __init__(self, route):
+    def __init__(self, route, timeBetweenReadings, speed):
         self.rowreader = csv.DictReader(route, quoting=csv.QUOTE_NONNUMERIC)
 
-        self.timeBetweenReadings = timedelta(minutes=5)
+        self.timeBetweenReadings = timedelta(minutes=timeBetweenReadings)
 
         row = next(self.rowreader)
 
@@ -78,6 +81,7 @@ class VanSimulator(object):
         self.timeToNextReading = self.timeBetweenReadings
 
         self.speed = 0
+        self.simSpeed = speed
 
     def start(self):
         moving = True
@@ -108,6 +112,7 @@ class VanSimulator(object):
         self.currentPosition = (row['Longitude'], row['Latitude'])
 
     def move_to_next_reading(self):
+        time.sleep(self.timeBetweenReadings.total_seconds()/self.simSpeed)
         self.currentTime += self.timeBetweenReadings
         self.currentPosition = (
             self.currentPosition[0] + (self.speed[0] * timedelta_to_minutes(self.timeBetweenReadings)),
