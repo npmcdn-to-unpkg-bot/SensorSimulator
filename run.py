@@ -13,22 +13,21 @@ with open('path.csv') as route:
     lons = [lon for ((lat, lon), time, weather, pollution) in van.readings]
 
     for reading in van.readings:
-        print(reading[3])
-        if reading[2][0] > 27:
+        if reading[2] > 27:
             colour = "#800026"
-        elif reading[2][0] > 25:
+        elif reading[2] > 25:
             colour = "#bd0026"
-        elif reading[2][0] > 23:
+        elif reading[2] > 23:
             colour = "#e31a1c"
-        elif reading[2][0] > 21:
+        elif reading[2] > 21:
             colour = "#fc4e2a"
-        elif reading[2][0] > 19:
+        elif reading[2] > 19:
             colour = "#fd8d3c"
-        elif reading[2][0] > 17:
+        elif reading[2] > 17:
             colour = "#feb24c"
-        elif reading[2][0] > 15:
+        elif reading[2] > 15:
             colour = "#fed976"
-        elif reading[2][0] > 13:
+        elif reading[2] > 13:
             colour = "#ffeda0"
         else:
             colour = "#ffffcc"
