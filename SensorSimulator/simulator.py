@@ -6,6 +6,7 @@ from Crypto.Cipher import AES
 import time
 import requests
 import json
+import random
 
 
 class SensorSimulator(object):
@@ -42,14 +43,14 @@ class SensorSimulator(object):
 
     def send_reading(self):
         weather = self.weather()
-        pollution = self.pollution()
+        # pollution = self.pollution()
 
         body = json.dumps({
             "deviceId": "fake1",
             "eventTime": (self.time - datetime(1970, 1, 1)).total_seconds(),
-            "temp": weather["Temperature"],
-            "hum": weather["Humidity"],
-            "pres": weather["Pressure"]/10,
+            "temp": weather["Temperature"] + random.gauss(0,0.4),
+            "hum": weather["Humidity"] + random.gauss(0,1),
+            "pres": (weather["Pressure"]/10) + random.gauss(0,0.2),
             "bat": 1,
             "long": self.coords[0],
             "lat": self.coords[1]
@@ -77,7 +78,7 @@ class VanSimulator(object):
         row = next(self.rowreader)
 
         self.currentPosition = (row['Longitude'], row['Latitude'])
-        self.currentTime = datetime.strptime(row['Time'], "%Y-%m-%d %H:%M:%S")
+        self.currentTime = datetime.strptime(row['Time'], "%d/%m/%Y %H:%M:%S")
         self.timeToNextReading = self.timeBetweenReadings
 
         self.speed = 0
@@ -94,7 +95,7 @@ class VanSimulator(object):
         except StopIteration:
             return False
 
-        row["Time"] = datetime.strptime(row['Time'], "%Y-%m-%d %H:%M:%S")
+        row["Time"] = datetime.strptime(row['Time'], "%d/%m/%Y %H:%M:%S")
 
         self.speed = self.calculate_speed(row["Time"], row["Longitude"], row["Latitude"])
 
@@ -127,6 +128,9 @@ class VanSimulator(object):
         time_difference = end_time - self.currentTime
         lon_difference = end_lon - self.currentPosition[0]
         lat_difference = end_lat - self.currentPosition[1]
+
+        if timedelta_to_minutes(time_difference) == 0:
+            return [0,0]
 
         return [
             lon_difference/timedelta_to_minutes(time_difference),

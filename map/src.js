@@ -5,22 +5,28 @@ L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v8/tiles/256/{z}/{x
     accessToken: 'pk.eyJ1IjoiYmVuLXdpbGxpcyIsImEiOiJjaXNsZ3Q2NnowMDZuMnNuNTRkOWx3aG9qIn0.kPrDlJl3RLatF8ip5BPsVg'
 }).addTo(mymap);
 
-var markers = new L.FeatureGroup().addTo(mymap);
+var points = new L.FeatureGroup().addTo(mymap);
 
 setInterval(function() {
 $.ajax(
     generate_ajax_options()
 ).done(function(result) {
-    markers.clearLayers();
+    points.clearLayers();
     readings = result.value;
     for (var i = 0; i < readings.length; i++) {
         plot(readings[i])
     }
 })
-}, 500)
+}, 20 * 1000)
+
 
 function plot(reading) {
-    var marker = L.marker([reading["longitude"], reading["latitude"]])
+
+    var circles = L.circle([reading["latitude"], reading["longitude"]], 30, {
+        color: "red",
+        fillColor: "#f00",
+        fillOpacity: 0.5
+    })
     .bindPopup(
         "<b>Time: " +
         reading["Timestamp"] +
@@ -35,7 +41,7 @@ function plot(reading) {
         reading["pressure"] +
         "<br/>"
     );
-     markers.addLayer(marker);
+     points.addLayer(circles);
 }
 
 

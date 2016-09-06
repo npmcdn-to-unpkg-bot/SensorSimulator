@@ -27,7 +27,7 @@ class SensorSimulatorMethods(unittest.TestCase):
 
 class VanSimulatorMethods(unittest.TestCase):
     def setUp(self):
-        self.van = VanSimulator(open('path.csv', 'r'))
+        self.van = VanSimulator(open('path.csv', 'r'), 5, 100)
 
     def test_route(self):
         self.van.start()
