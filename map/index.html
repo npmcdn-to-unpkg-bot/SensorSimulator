@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.css" />
+        <script src="papaparse.min.js"></script>
+        <script src="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/core-min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/hmac-min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/sha256-min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/enc-base64-min.js"></script>
+        <style>
+            body {
+                padding: 0;
+            }
+
+            #map {
+                width: 100%;
+                height: 100%;
+                position: inherit !important;
+                overflow: visible;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <script src="common.js"></script>
+        <script>
+        var mymap = L.map('map').setView([51.505, -0.09], 10);
+
+        L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/streets-v8/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
+            maxZoom: 18,
+            accessToken: 'pk.eyJ1IjoiYmVuLXdpbGxpcyIsImEiOiJjaXNsZ3Q2NnowMDZuMnNuNTRkOWx3aG9qIn0.kPrDlJl3RLatF8ip5BPsVg'
+        }).addTo(mymap);
+
+        var points = new L.FeatureGroup().addTo(mymap);
+
+
+        get_data(function(data){
+            plot_data(data);
+        })
+
+        if (config["live"]) {
+            setInterval(function() {
+                get_data(function(data){
+                    points.clearLayers();
+                    plot_data(data);
+                })
+            }, config["update_time"] * 1000)
+        }
+
+        function plot_data(data) {
+            for (var i = 0; i < data.length; i++) {
+                plot_reading(data[i])
+            }
+        }
+
+        function plot_reading(reading) {
+
+            switch (Math.round(reading["contaminants"])) {
+                case 9:
+                    color = "#4d004b";
+                    break;
+                case 8:
+                    color = "#810f7c";
+                    break;
+                case 7:
+                    color = "#88419d";
+                    break;
+                case 6:
+                    color = "#8c6bb1";
+                    break;
+                case 5:
+                    color = "#8c96c6";
+                    break;
+                case 4:
+                    color = "#9ebcda";
+                    break;
+                case 3:
+                    color = "#bfd3e6";
+                    break;
+                case 2:
+                    color = "#e0ecf4";
+                    break;
+                default:
+                    color = "#f7fcfd";
+            }
+
+            var circles = L.circle([reading["latitude"], reading["longitude"]], 10, {
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.5
+            }).bindPopup(
+                "<b>Time: " +
+                reading["eventtime"] +
+                "</b><br/>" +
+                "Temperature: " +
+                reading["temperature"] +
+                "<br/>" +
+                "Humidity: " +
+                reading["humidity"] +
+                "<br/>" +
+                "Pressure: " +
+                reading["pressure"] +
+                "<br/>"
+            );
+            points.addLayer(circles);
+        }
+
+        </script>
+    </body>
+</html>

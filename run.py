@@ -1,12 +1,24 @@
 from SensorSimulator.simulator import VanSimulator
 import os
-import gmplot
+from datetime import datetime
+import argparse
 
-with open('path.csv') as route:
-    van = VanSimulator(route)
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('route',
+                    help='Route to be taken')
+parser.add_argument('-s', '--speed',
+                    help='Speed of the simulation, 1 is real time',
+                    type=float, default=1)
+parser.add_argument('-t', metavar="MINUTES",
+                    help='Time between readings in minutes',
+                    type=float, default=5)
+parser.add_argument('-d', metavar="DEVICE ID",
+                    help='Device ID',
+                    type=str, default='fake')
 
-    gmap = gmplot.GoogleMapPlotter(51.503358, -0.127659, 11)
+args = parser.parse_args()
 
+<<<<<<< HEAD
     van.start()
 
     lats = [lat for ((lat, lon), time, weather, pollution) in van.readings]
@@ -31,8 +43,9 @@ with open('path.csv') as route:
             colour = "#ffeda0"
         else:
             colour = "#ffffcc"
+=======
+with open(args.route) as route:
+    van = VanSimulator(route, args.t, args.speed, args.d)
+>>>>>>> develop
 
-        gmap.scatter([reading[0][0]], [reading[0][1]],
-                     size=500, color=colour, marker=False, face_alpha=0.7)
-
-    gmap.draw("mymap.html")
+    van.start()
