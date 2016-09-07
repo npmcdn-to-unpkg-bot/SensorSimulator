@@ -11,11 +11,14 @@ parser.add_argument('-s', '--speed',
                     type=float, default=1)
 parser.add_argument('-t', metavar="MINUTES",
                     help='Time between readings in minutes',
-                    type=float, default=1)
+                    type=float, default=5)
+parser.add_argument('-d', metavar="DEVICE ID",
+                    help='Device ID',
+                    type=str, default='fake')
 
 args = parser.parse_args()
 
 with open(args.route) as route:
-    van = VanSimulator(route, args.t, args.speed)
+    van = VanSimulator(route, args.t, args.speed, args.d)
 
     van.start()

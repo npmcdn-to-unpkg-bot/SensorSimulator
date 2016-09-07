@@ -6,12 +6,13 @@ from Crypto.Cipher import AES
 import time
 import requests
 import json
-import random
 
 
 class SensorSimulator(object):
     """Sensor Simulator Class"""
-    def __init__(self, time, coords):
+    def __init__(self, deviceid, time, coords):
+        self.deviceid = deviceid
+
         self.time = time
         self.coords = coords
 
@@ -30,30 +31,32 @@ class SensorSimulator(object):
     def closest_weather_station(self):
         return min(self._weather_stations, key=lambda x: x.get_distance_from(self.coords))
 
-    def closest_pollution_station(self):
-        return min(self._pollution_stations, key=lambda x: x.get_distance_from(self.coords))
-
     def weather(self):
         weather_station = self.closest_weather_station()
         return weather_station.get_weather(self.time)
 
     def pollution(self):
-        pollution_station = self.closest_pollution_station()
-        return pollution_station.get_pollution(self.time)
+        difference = (-0.134518 - self.coords[0], 51.510065 - self.coords[1])
+        distance = sqrt(difference[0]**2 + difference[1]**2)
+        pollution = 10 * (1 - distance/0.3)
+        return {
+            "Pollution": pollution
+        }
 
     def send_reading(self):
         weather = self.weather()
-        # pollution = self.pollution()
+        pollution = self.pollution()
 
         body = json.dumps({
-            "deviceId": "fake1",
+            "deviceId": self.deviceid,
             "eventTime": (self.time - datetime(1970, 1, 1)).total_seconds(),
-            "temp": weather["Temperature"] + random.gauss(0,0.4),
-            "hum": weather["Humidity"] + random.gauss(0,1),
-            "pres": (weather["Pressure"]/10) + random.gauss(0,0.2),
+            "temp": round(weather["Temperature"], 3),
+            "hum": round(weather["Humidity"], 3),
+            "pres": round(weather["Pressure"]/10, 3),
             "bat": 1,
             "long": self.coords[0],
-            "lat": self.coords[1]
+            "lat": self.coords[1],
+            "con": round(pollution["Pollution"], 3)
         })
 
         print(body)
@@ -70,19 +73,21 @@ class SensorSimulator(object):
 
 class VanSimulator(object):
     """Van Simulator Class"""
-    def __init__(self, route, timeBetweenReadings, speed):
-        self.rowreader = csv.DictReader(route, quoting=csv.QUOTE_NONNUMERIC)
+    def __init__(self, route, timeBetweenReadings, speed, deviceid):
+        self.rowreader = csv.DictReader(route)
 
         self.timeBetweenReadings = timedelta(minutes=timeBetweenReadings)
 
         row = next(self.rowreader)
 
-        self.currentPosition = (row['Longitude'], row['Latitude'])
+        self.currentPosition = (float(row['Longitude']), float(row['Latitude']))
         self.currentTime = datetime.strptime(row['Time'], "%d/%m/%Y %H:%M:%S")
         self.timeToNextReading = self.timeBetweenReadings
 
         self.speed = 0
         self.simSpeed = speed
+
+        self.deviceid = deviceid
 
     def start(self):
         moving = True
@@ -97,7 +102,7 @@ class VanSimulator(object):
 
         row["Time"] = datetime.strptime(row['Time'], "%d/%m/%Y %H:%M:%S")
 
-        self.speed = self.calculate_speed(row["Time"], row["Longitude"], row["Latitude"])
+        self.speed = self.calculate_speed(row["Time"], float(row["Longitude"]), float(row["Latitude"]))
 
         while row["Time"] > self.currentTime + self.timeToNextReading:
             self.take_readings()
@@ -110,7 +115,7 @@ class VanSimulator(object):
     def update_time_and_position(self, row):
         self.timeToNextReading -= (row["Time"] - self.currentTime)
         self.currentTime = row["Time"]
-        self.currentPosition = (row['Longitude'], row['Latitude'])
+        self.currentPosition = (float(row['Longitude']), float(row['Latitude']))
 
     def move_to_next_reading(self):
         time.sleep(self.timeBetweenReadings.total_seconds()/self.simSpeed)
@@ -121,7 +126,7 @@ class VanSimulator(object):
         )
 
     def take_readings(self):
-        sensor = SensorSimulator(self.currentTime, self.currentPosition)
+        sensor = SensorSimulator(self.deviceid, self.currentTime, self.currentPosition)
         sensor.send_reading()
 
     def calculate_speed(self, end_time, end_lon, end_lat):

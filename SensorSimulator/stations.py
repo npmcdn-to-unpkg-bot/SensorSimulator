@@ -1,6 +1,7 @@
 from math import sqrt
 import csv
 from datetime import datetime
+import random
 
 
 class Station(object):
@@ -25,17 +26,26 @@ class WeatherStation(Station):
                 )
             mask = "%Y-%m-%d %H:%M:%S"
             row = next(rowreader)
-            timestamp = datetime.strptime(row['Timestamp'], mask)
-            if timestamp > time:
+            row["time"] = datetime.strptime(row['Timestamp'], mask)
+            oldRow = row
+            if row["time"] > time:
                 raise ValueError("Time given is out of range")
             for row in rowreader:
-                timestamp = datetime.strptime(row['Timestamp'], mask)
-                if timestamp > time:
+                row["time"] = datetime.strptime(row['Timestamp'], mask)
+                if row["time"] > time:
+
+                    a = row["time"] - time
+                    b = time - oldRow["time"]
+
+                    oldComponent = timedelta_to_minutes(a) / (timedelta_to_minutes(a)+timedelta_to_minutes(b))
+                    newComponent = timedelta_to_minutes(b) / (timedelta_to_minutes(a)+timedelta_to_minutes(b))
+
                     return ({
-                        "Temperature": row['Temperature'],
-                        "Humidity": row['Humidity'],
-                        "Pressure": row['Pressure']
+                        "Temperature": oldComponent*oldRow['Temperature'] + newComponent*row['Temperature'] + random.gauss(0,0.4),
+                        "Humidity": oldComponent*oldRow['Humidity'] + newComponent*row['Humidity'] + random.gauss(0,1),
+                        "Pressure": oldComponent*oldRow['Pressure'] + newComponent*row['Pressure'] + random.gauss(0,0.2)
                     })
+                oldRow = row
             raise ValueError("Time given is out of range")
 
 
@@ -58,3 +68,6 @@ class PollutionStation(Station):
                         "NO": row['NO']
                     })
             raise ValueError("Time given is out of range")
+
+def timedelta_to_minutes(td):
+    return float(td.seconds//60)
