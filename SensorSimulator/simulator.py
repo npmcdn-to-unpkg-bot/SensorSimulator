@@ -6,6 +6,7 @@ from Crypto.Cipher import AES
 import time
 import requests
 import json
+import sys
 
 
 class SensorSimulator(object):
@@ -59,8 +60,6 @@ class SensorSimulator(object):
             "con": round(pollution["Pollution"], 3)
         })
 
-        print(body)
-
         padding = (16 - (len(body) % 16)) * "0"
 
         encrypted_body = self.cipher.encrypt(body + padding).encode("hex")
@@ -89,10 +88,18 @@ class VanSimulator(object):
 
         self.deviceid = deviceid
 
+        self.readingsTaken = 0
+
     def start(self):
+        sys.stdout.write("Starting Simulation\n")
+        sys.stdout.flush()
+
         moving = True
         while moving:
             moving = self.move_to_next_weypoint()
+
+        sys.stdout.write("\nSimulation Finished\n")
+        sys.stdout.flush()
 
     def move_to_next_weypoint(self):
         try:
@@ -129,13 +136,17 @@ class VanSimulator(object):
         sensor = SensorSimulator(self.deviceid, self.currentTime, self.currentPosition)
         sensor.send_reading()
 
+        self.readingsTaken += 1
+        sys.stdout.write("Readings Simulated: "+str(self.readingsTaken)+"\r")
+        sys.stdout.flush()
+
     def calculate_speed(self, end_time, end_lon, end_lat):
         time_difference = end_time - self.currentTime
         lon_difference = end_lon - self.currentPosition[0]
         lat_difference = end_lat - self.currentPosition[1]
 
         if timedelta_to_minutes(time_difference) == 0:
-            return [0,0]
+            return [0, 0]
 
         return [
             lon_difference/timedelta_to_minutes(time_difference),
